@@ -1292,7 +1292,7 @@ theorem Term.shift_closed (t : Term) : ∀ (n d : Nat), t.Closed n → n ≤ d �
     t.shift d = t := by
   induction t <;> intro n d hc h <;> simp only [Term.Closed] at hc <;>
     simp only [Term.shift]
-  case Var => rw [if_pos (by omega)]
+  case Var => rw [ite_eq_left (by omega)]
   case Typ ih => rw [ih n d hc h]
   case Min iha ihb => rw [iha n d hc.1 h, ihb n d hc.2 h]
   case All ihA ihB =>
@@ -1312,7 +1312,7 @@ theorem Term.occ_closed : ∀ (t : Term) (n d : Nat), t.Closed n → n ≤ d →
   intro t
   induction t <;> intro n d hc hle <;>
     simp only [Term.occ, Term.Closed] at *
-  case Var i => rw [if_neg (by omega)]
+  case Var i => rw [ite_eq_right (by omega)]
   case Typ ih => exact ih n d hc hle
   case Min iha ihb => rw [iha n d hc.1 hle, ihb n d hc.2 hle]
   case All ihA ihB =>
@@ -1336,10 +1336,10 @@ theorem Term.occ_shift_ge : ∀ (t : Term) (d e : Nat), e ≤ d →
   case Var i =>
     simp only [Term.shift]
     by_cases h1 : i < e
-    · rw [if_pos h1]
+    · rw [ite_eq_left h1]
       simp only [Term.occ]
       split <;> (try split) <;> omega
-    · rw [if_neg h1]
+    · rw [ite_eq_right h1]
       simp only [Term.occ]
       split <;> (try split) <;> omega
   all_goals simp [Term.shift, Term.occ, *, Nat.succ_le_succ he]
@@ -1369,10 +1369,10 @@ theorem Term.occ_shift_lt : ∀ (t : Term) (i e : Nat), i < e →
   case Var j =>
     simp only [Term.shift]
     by_cases h1 : j < e
-    · rw [if_pos h1]
-    · rw [if_neg h1]
+    · rw [ite_eq_left h1]
+    · rw [ite_eq_right h1]
       simp only [Term.occ]
-      rw [if_neg (by omega), if_neg (by omega)]
+      rw [ite_eq_right (by omega), ite_eq_right (by omega)]
   all_goals simp [Term.shift, Term.occ, *, Nat.succ_lt_succ hie]
 
 theorem Term.occ_shift_self : ∀ (t : Term) (e : Nat),
@@ -1382,12 +1382,12 @@ theorem Term.occ_shift_self : ∀ (t : Term) (e : Nat),
   case Var j =>
     simp only [Term.shift]
     by_cases h1 : j < e
-    · rw [if_pos h1]
+    · rw [ite_eq_left h1]
       simp only [Term.occ]
-      rw [if_neg (by omega)]
-    · rw [if_neg h1]
+      rw [ite_eq_right (by omega)]
+    · rw [ite_eq_right h1]
       simp only [Term.occ]
-      rw [if_neg (by omega)]
+      rw [ite_eq_right (by omega)]
   all_goals simp [Term.shift, Term.occ, *]
 
 -- occurrence bookkeeping for the eta rule: substitution at or above an
@@ -1401,13 +1401,13 @@ theorem Term.occ_subst_lt_zero : ∀ (t : Term) (e i : Nat) (w : Term),
     simp only [Term.subst, Term.occ] at ht ⊢
   case Var j =>
     by_cases h1 : j = e
-    · rw [if_pos h1]; exact hw
-    · rw [if_neg h1]
+    · rw [ite_eq_left h1]; exact hw
+    · rw [ite_eq_right h1]
       by_cases h2 : e < j
-      · rw [if_pos h2]
+      · rw [ite_eq_left h2]
         simp only [Term.occ]
-        rw [if_neg (by omega)]
-      · rw [if_neg h2]
+        rw [ite_eq_right (by omega)]
+      · rw [ite_eq_right h2]
         simp only [Term.occ] at ht ⊢
         exact ht
   case Typ ih => exact ih e i w hie ht hw
@@ -1446,18 +1446,18 @@ theorem Term.occ_subst_zero : ∀ (t : Term) (e i : Nat) (w : Term),
   case Var j =>
     have hj : j ≠ i + 1 := by
       intro hj
-      rw [if_pos hj] at ht
+      rw [ite_eq_left hj] at ht
       simp at ht
     by_cases h1 : j = e
-    · rw [if_pos h1]; exact hw
-    · rw [if_neg h1]
+    · rw [ite_eq_left h1]; exact hw
+    · rw [ite_eq_right h1]
       by_cases h2 : e < j
-      · rw [if_pos h2]
+      · rw [ite_eq_left h2]
         simp only [Term.occ]
-        rw [if_neg (by omega)]
-      · rw [if_neg h2]
+        rw [ite_eq_right (by omega)]
+      · rw [ite_eq_right h2]
         simp only [Term.occ]
-        rw [if_neg (by omega)]
+        rw [ite_eq_right (by omega)]
   case Typ ih => exact ih e i w hei ht hw
   case Min iha ihb =>
     rw [iha e i w hei (by omega) hw, ihb e i w hei (by omega) hw]
@@ -1493,9 +1493,9 @@ theorem Term.occ_zero_subst_irrel : ∀ (t : Term) (e : Nat) (w w' : Term),
   case Var j =>
     by_cases h1 : j = e
     · exfalso
-      rw [if_pos h1] at ht
+      rw [ite_eq_left h1] at ht
       simp at ht
-    · rw [if_neg h1, if_neg h1]
+    · rw [ite_eq_right h1, ite_eq_right h1]
   case Typ ih => rw [ih e w w' ht]
   case Min iha ihb => rw [iha e w w' (by omega), ihb e w w' (by omega)]
   case All ihA ihB =>
@@ -1523,26 +1523,26 @@ theorem Term.subst_var_eq_subst_above : ∀ (t : Term) (d : Nat) (w : Term),
   case Var j =>
     have hj : j ≠ d + 1 := by
       intro he
-      rw [if_pos he] at ht
+      rw [ite_eq_left he] at ht
       simp at ht
     by_cases h1 : j = d
-    · rw [if_pos h1, if_neg (by omega), if_neg (by omega), h1]
-    · rw [if_neg h1]
+    · rw [ite_eq_left h1, ite_eq_right (by omega), ite_eq_right (by omega), h1]
+    · rw [ite_eq_right h1]
       by_cases h2 : d < j
-      · rw [if_pos h2, if_neg (by omega), if_pos (by omega)]
-      · rw [if_neg h2, if_neg (by omega), if_neg (by omega)]
+      · rw [ite_eq_left h2, ite_eq_right (by omega), ite_eq_left (by omega)]
+      · rw [ite_eq_right h2, ite_eq_right (by omega), ite_eq_right (by omega)]
   case Typ ih => rw [ih d w ht]
   case Min iha ihb => rw [iha d w (by omega), ihb d w (by omega)]
   case All ihA ihB =>
     rw [ihA d w (by omega)]
     have hs : Term.shift 0 (Term.Var d) = .Var (d + 1) := by
       simp only [Term.shift]
-      rw [if_neg (by omega)]
+      rw [ite_eq_right (by omega)]
     rw [hs, ihB (d + 1) (Term.shift 0 w) (by omega)]
   case Lam ihf =>
     have hs : Term.shift 0 (Term.Var d) = .Var (d + 1) := by
       simp only [Term.shift]
-      rw [if_neg (by omega)]
+      rw [ite_eq_right (by omega)]
     rw [hs, ihf (d + 1) (Term.shift 0 w) ht]
   case App ihf iha => rw [ihf d w (by omega), iha d w (by omega)]
   case Mat ihh ihm =>
@@ -1556,14 +1556,14 @@ theorem Term.subst_var_eq_subst_above : ∀ (t : Term) (d : Nat) (w : Term),
     rw [ihv d w (by omega)]
     have hs : Term.shift 0 (Term.Var d) = .Var (d + 1) := by
       simp only [Term.shift]
-      rw [if_neg (by omega)]
+      rw [ite_eq_right (by omega)]
     rw [hs, ihb (d + 1) (Term.shift 0 w) (by omega)]
 
 theorem Term.subst_closed (t : Term) : ∀ (n d : Nat) (w : Term), t.Closed n →
     n ≤ d → Term.subst d w t = t := by
   induction t <;> intro n d w hc h <;> simp only [Term.Closed] at hc <;>
     simp only [Term.subst]
-  case Var => rw [if_neg (by omega), if_neg (by omega)]
+  case Var => rw [ite_eq_right (by omega), ite_eq_right (by omega)]
   case Typ ih => rw [ih n d w hc h]
   case Min iha ihb => rw [iha n d w hc.1 h, ihb n d w hc.2 h]
   case All ihA ihB =>
@@ -1584,8 +1584,8 @@ theorem Term.shift_subst_occ : ∀ (t : Term) (d : Nat) (w : Term),
   intro t
   induction t <;> intro d w ht <;> simp only [Term.subst, Term.occ] at ht ⊢
   case Var i =>
-    have hne : i ≠ d := by intro h; rw [if_pos h] at ht; simp at ht
-    rw [if_neg hne]
+    have hne : i ≠ d := by intro h; rw [ite_eq_left h] at ht; simp at ht
+    rw [ite_eq_right hne]
     split <;> simp only [Term.shift] <;> split <;>
       first | rfl | (exfalso; omega) | (simp only [Term.Var.injEq]; omega)
   case Typ ih => simp only [Term.shift, ih d w ht]
@@ -1777,7 +1777,7 @@ theorem Term.Value.app_inv (hv : Term.Value β (.App f a)) : Term.Value β f := 
   | _ =>
     obtain ⟨ys, _, hf⟩ := Term.app_eq_apps (by trivial) ht
     subst hf
-    constructor <;> assumption
+    constructor! <;> assumption
 
 -- a value stays a value under a shift, and under the substitution of a
 -- variable it does not mention
@@ -1804,7 +1804,7 @@ theorem Term.Value.shift (hv : Term.Value β t) (d : Nat) :
     apply hne a' c' (xs.map (Term.subst d .Qnt))
     have := congrArg (Term.subst d .Qnt) heq
     rwa [Term.subst_shift, Term.subst_apps] at this
-  all_goals constructor <;> assumption
+  all_goals constructor! <;> assumption
 
 theorem Term.Value.subst (hv : Term.Value β t) (ho : Term.occ d t = 0) (w : Term) :
     Term.Value β (Term.subst d w t) := by
@@ -1816,7 +1816,7 @@ theorem Term.Value.subst (hv : Term.Value β t) (ho : Term.occ d t = 0) (w : Ter
   case var i as =>
     rw [Term.occ_apps] at ho
     simp only [Term.occ] at ho
-    rw [if_neg (by intro h; rw [if_pos h] at ho; omega)]
+    rw [ite_eq_right (by intro h; rw [ite_eq_left h] at ho; omega)]
     split <;> exact .var
   case ref hk hg => exact .ref hk (by simpa using hg)
   case min a b as ha hb hab iha ihb =>
@@ -1839,7 +1839,7 @@ theorem Term.Value.subst (hv : Term.Value β t) (ho : Term.occ d t = 0) (w : Ter
     apply hne a' c' (xs.map (Term.shift d))
     have := congrArg (Term.shift d) heq
     rwa [Term.shift_subst_occ _ _ _ (by omega), Term.shift_apps] at this
-  all_goals constructor <;> assumption
+  all_goals constructor! <;> assumption
 
 -- a Ctr-headed spine is never a binder-former: the redex heads a spine
 -- cannot be
@@ -2567,7 +2567,7 @@ theorem Par.shift (hβ : Book.Closed β) (hp : Par β t t') :
       (Term.shift d (Term.subst 0 .Qnt F'))
     have h0 : Term.shift (d + 1) (Term.Var 0) = .Var 0 := by
       simp only [Term.shift]
-      rw [if_pos (by omega)]
+      rw [ite_eq_left (by omega)]
     have h1 : Term.shift d (Term.subst 0 .Qnt F')
         = Term.subst 0 .Qnt (Term.shift (d + 1) F') := by
       rw [Term.shift_subst_ge F' d 0 .Qnt (Nat.zero_le d)]
@@ -2668,7 +2668,7 @@ theorem Par.subst (hβ : Book.Closed β) (hp : Par β t t') :
     have h0 : Term.subst (d + 1) (Term.shift 0 w) (Term.Var 0)
         = .Var 0 := by
       simp only [Term.subst]
-      rw [if_neg (by omega), if_neg (by omega)]
+      rw [ite_eq_right (by omega), ite_eq_right (by omega)]
     have h1 : Term.subst d w' (Term.subst 0 .Qnt F')
         = Term.subst 0 .Qnt (Term.subst (d + 1) (Term.shift 0 w') F') := by
       rw [Term.subst_subst0 F' w' .Qnt d]
@@ -3483,7 +3483,7 @@ theorem Par.diamond (hβ : Book.Closed β) :
             = .App (Term.subst 0 .Qnt G') a2 := by
           show Term.App (Term.subst 0 a2 G')
             (if 0 = 0 then a2 else _) = _
-          rw [if_pos _root_.rfl,
+          rw [ite_eq_left _root_.rfl,
             Term.occ_zero_subst_irrel G' 0 a2 .Qnt hocc']
         rw [← hrw]
         exact Par.subst hβ hf32 0 ha32
@@ -3526,7 +3526,7 @@ theorem Par.diamond (hβ : Book.Closed β) :
             = .App (Term.subst 0 .Qnt G') a' := by
           show Term.App (Term.subst 0 a' G')
             (if 0 = 0 then a' else _) = _
-          rw [if_pos _root_.rfl,
+          rw [ite_eq_left _root_.rfl,
             Term.occ_zero_subst_irrel G' 0 a' .Qnt hocc']
         rw [← hrw]
         exact Par.subst hβ hF32 0 ha31
@@ -3825,7 +3825,7 @@ theorem Step.subst (hβ : Book.Closed β) (s : Step β p a b) :
     rw [Term.subst_subst0]
     have h0 : Term.subst (d + 1) (Term.shift 0 w) (Term.Var 0) = .Var 0 := by
       simp only [Term.subst]
-      rw [if_neg (by omega), if_neg (by omega)]
+      rw [ite_eq_right (by omega), ite_eq_right (by omega)]
     show Step β p (.Lam (.App (Term.subst (d + 1) (Term.shift 0 w) F)
       (Term.subst (d + 1) (Term.shift 0 w) (.Var 0)))) _
     rw [h0]
@@ -5502,25 +5502,25 @@ theorem Uses.lift_one_lt (n i : Nat) (q : Quant) (h : i < n) :
   funext j
   simp only [Uses.lift, Uses.one]
   by_cases h1 : j < n
-  · rw [if_pos h1]
-  · rw [if_neg h1, if_neg (show ¬ j = i by omega)]
+  · rw [ite_eq_left h1]
+  · rw [ite_eq_right h1, ite_eq_right (show ¬ j = i by omega)]
     by_cases h2 : j = n
-    · rw [if_pos h2]
-    · rw [if_neg h2, if_neg (show ¬ j - 1 = i by omega)]
+    · rw [ite_eq_left h2]
+    · rw [ite_eq_right h2, ite_eq_right (show ¬ j - 1 = i by omega)]
 
 theorem Uses.lift_one_ge (n i : Nat) (q : Quant) (h : n ≤ i) :
     Uses.lift n (Uses.one i q) = Uses.one (i + 1) q := by
   funext j
   simp only [Uses.lift, Uses.one]
   by_cases h1 : j < n
-  · rw [if_pos h1, if_neg (show ¬ j = i by omega), if_neg (show ¬ j = i + 1 by omega)]
-  · rw [if_neg h1]
+  · rw [ite_eq_left h1, ite_eq_right (show ¬ j = i by omega), ite_eq_right (show ¬ j = i + 1 by omega)]
+  · rw [ite_eq_right h1]
     by_cases h2 : j = n
-    · rw [if_pos h2, if_neg (show ¬ j = i + 1 by omega)]
-    · rw [if_neg h2]
+    · rw [ite_eq_left h2, ite_eq_right (show ¬ j = i + 1 by omega)]
+    · rw [ite_eq_right h2]
       by_cases h3 : j = i + 1
-      · rw [if_pos h3, if_pos (show j - 1 = i by omega)]
-      · rw [if_neg h3, if_neg (show ¬ j - 1 = i by omega)]
+      · rw [ite_eq_left h3, ite_eq_left (show j - 1 = i by omega)]
+      · rw [ite_eq_right h3, ite_eq_right (show ¬ j - 1 = i by omega)]
 
 theorem Uses.lift_zero (n : Nat) : Uses.lift n Uses.zero = Uses.zero := by
   funext j; simp only [Uses.lift, Uses.zero]
@@ -5547,30 +5547,30 @@ theorem Uses.lift_tail (n : Nat) (π : Uses) :
   funext j
   simp only [Uses.lift, Uses.tail]
   by_cases h1 : j < n
-  · rw [if_pos h1, if_pos (show j + 1 < n + 1 by omega)]
-  · rw [if_neg h1, if_neg (show ¬ j + 1 < n + 1 by omega)]
+  · rw [ite_eq_left h1, ite_eq_left (show j + 1 < n + 1 by omega)]
+  · rw [ite_eq_right h1, ite_eq_right (show ¬ j + 1 < n + 1 by omega)]
     by_cases h2 : j = n
-    · rw [if_pos h2, if_pos (show j + 1 = n + 1 by omega)]
-    · rw [if_neg h2, if_neg (show ¬ j + 1 = n + 1 by omega)]; congr 1; omega
+    · rw [ite_eq_left h2, ite_eq_left (show j + 1 = n + 1 by omega)]
+    · rw [ite_eq_right h2, ite_eq_right (show ¬ j + 1 = n + 1 by omega)]; congr 1; omega
 
 theorem Uses.lift_head (n : Nat) (π : Uses) : Uses.lift (n + 1) π 0 = π 0 := by
-  simp only [Uses.lift]; rw [if_pos (show 0 < n + 1 by omega)]
+  simp only [Uses.lift]; rw [ite_eq_left (show 0 < n + 1 by omega)]
 
 theorem Uses.del_one_lt (n i : Nat) (q : Quant) (h : i < n) :
     Uses.del n (Uses.one i q) = Uses.one i q := by
   funext j
   simp only [Uses.del, Uses.one]
   by_cases h1 : j < n
-  · rw [if_pos h1]
-  · rw [if_neg h1, if_neg (show ¬ j + 1 = i by omega), if_neg (show ¬ j = i by omega)]
+  · rw [ite_eq_left h1]
+  · rw [ite_eq_right h1, ite_eq_right (show ¬ j + 1 = i by omega), ite_eq_right (show ¬ j = i by omega)]
 
 theorem Uses.del_one_eq (n : Nat) (q : Quant) :
     Uses.del n (Uses.one n q) = Uses.zero := by
   funext j
   simp only [Uses.del, Uses.one, Uses.zero]
   by_cases h1 : j < n
-  · rw [if_pos h1, if_neg (show ¬ j = n by omega)]
-  · rw [if_neg h1, if_neg (show ¬ j + 1 = n by omega)]
+  · rw [ite_eq_left h1, ite_eq_right (show ¬ j = n by omega)]
+  · rw [ite_eq_right h1, ite_eq_right (show ¬ j + 1 = n by omega)]
 
 theorem Uses.del_zero (n : Nat) : Uses.del n Uses.zero = Uses.zero := by
   funext j; simp only [Uses.del, Uses.zero]; split <;> rfl
@@ -5588,11 +5588,11 @@ theorem Uses.del_tail (n : Nat) (π : Uses) :
   funext j
   simp only [Uses.del, Uses.tail]
   by_cases h1 : j < n
-  · rw [if_pos h1, if_pos (show j + 1 < n + 1 by omega)]
-  · rw [if_neg h1, if_neg (show ¬ j + 1 < n + 1 by omega)]
+  · rw [ite_eq_left h1, ite_eq_left (show j + 1 < n + 1 by omega)]
+  · rw [ite_eq_right h1, ite_eq_right (show ¬ j + 1 < n + 1 by omega)]
 
 theorem Uses.del_head (n : Nat) (π : Uses) : Uses.del (n + 1) π 0 = π 0 := by
-  simp only [Uses.del]; rw [if_pos (show 0 < n + 1 by omega)]
+  simp only [Uses.del]; rw [ite_eq_left (show 0 < n + 1 by omega)]
 
 theorem Quant.add_eq_none : ∀ {a b : Quant}, Quant.add a b = .None → a = .None ∧ b = .None := by
   intro a b h; cases a <;> cases b <;> simp_all [Quant.add]
@@ -5669,7 +5669,7 @@ theorem MatGoal.subst (h : MatGoal q' n B s tel G) :
       show Term.App _ _ = _
       rw [← Term.shift_subst_lt s 0 d w (Nat.zero_le d)]
       simp only [Term.subst]
-      rw [if_neg (by omega : ¬ (0 : Nat) = d + 1), if_neg (by omega : ¬ d + 1 < 0)]
+      rw [ite_eq_right (by omega : ¬ (0 : Nat) = d + 1), ite_eq_right (by omega : ¬ d + 1 < 0)]
     rw [e1] at h2
     exact MatGoal.succ h2
 
@@ -5680,7 +5680,7 @@ theorem Check.uses_ge {sp : List Term} (h : Check β Φ L sp q Γ t T π u) :
   | var hg =>
     intro i hi
     have := Ctx.get_lt hg
-    simp only [Uses.one]; rw [if_neg (by omega)]
+    simp only [Uses.one]; rw [ite_eq_right (by omega)]
   | min _ _ iha ihb => intro i hi; simp only [Uses.add, iha i hi, ihb i hi]; rfl
   | lam _ _ _ _ ihf => intro i hi; exact ihf (i + 1) (by simp only [List.length_cons]; omega)
   | app _ _ ihf ihx => intro i hi; simp only [Uses.add, ihf i hi, ihx i hi]; rfl
@@ -5820,9 +5820,9 @@ theorem Check.ins (hβ : Book.Closed β) (hΦ : Φ.Weak) {sp : List Term}
     intro n U Γ' hins sp'
     simp only [Term.shift, Term.shift_era]
     by_cases hi : i < n
-    · rw [if_pos hi, Uses.lift_one_lt n i q hi]
+    · rw [ite_eq_left hi, Uses.lift_one_lt n i q hi]
       exact .var (hins.get_lt hi hg)
-    · rw [if_neg hi, Uses.lift_one_ge n i q (by omega)]
+    · rw [ite_eq_right hi, Uses.lift_one_ge n i q (by omega)]
       exact .var (hins.get_ge (by omega) hg)
   | ref hk _ _ =>
     intro n U Γ' hins sp'
@@ -8903,7 +8903,7 @@ theorem Sub.perm_append : ∀ (M' M : List Charge), Sub M' M → ∃ D, M.Perm (
   | cons a M' ih =>
     intro M h
     have ha : a ∈ M := List.count_pos_iff.mp (by
-      have := h a; simp only [List.count_cons, beq_self_eq_true, if_true] at this; omega)
+      have := h a; simp only [List.count_cons, beq_self_eq_true, ite_true] at this; omega)
     obtain ⟨D, hD⟩ := ih (M.erase a) (fun x => by
       have := h x
       rw [List.count_erase]
@@ -8988,12 +8988,12 @@ theorem Term.occ_subst_ge (hw : w.Closed 0) : ∀ (t : Term) (e i : Nat), e ≤ 
   case Var j =>
     by_cases h1 : j = e
     · subst h1
-      rw [if_pos rfl, Term.occ_closed w 0 i hw (Nat.zero_le i)]
+      rw [ite_eq_left rfl, Term.occ_closed w 0 i hw (Nat.zero_le i)]
       split <;> omega
-    · rw [if_neg h1]
+    · rw [ite_eq_right h1]
       by_cases h2 : e < j
-      · rw [if_pos h2]; simp only [Term.occ]; split <;> split <;> omega
-      · rw [if_neg h2]; simp only [Term.occ]; split <;> split <;> omega
+      · rw [ite_eq_left h2]; simp only [Term.occ]; split <;> split <;> omega
+      · rw [ite_eq_right h2]; simp only [Term.occ]; split <;> split <;> omega
   case All q A B ihA ihB =>
     rw [ihA e i hei, Term.shift_closed w 0 0 hw (Nat.le_refl 0), ihB (e + 1) (i + 1) (by omega)]
   case Lam f ih =>
@@ -9076,9 +9076,9 @@ theorem CG.subst (hb : CG β b Mb) (hv : CG β v Mv) (hvc : v.Closed 0) (d : Nat
     rename_i i
     by_cases hi : i = d
     · subst hi
-      simp only [Term.subst, Term.occ, if_true]
+      simp only [Term.subst, Term.occ, ite_true]
       exact ⟨Mv, hv, fun x => by simp⟩
-    · simp only [Term.subst, Term.occ, if_neg hi]
+    · simp only [Term.subst, Term.occ, ite_eq_right hi]
       split <;> exact ⟨[], .var, fun x => by simp⟩
   | .refF hk => ⟨[], .refF hk, fun x => by simp⟩
   | .typ => ⟨[], .typ, fun x => by simp⟩
@@ -9601,7 +9601,7 @@ theorem Check.deep_value (hβ : Book.Closed β) {sp : List Term}
           simp at hn ⊢; rw [hargs.length] at hn; omega
       · exact absurd hA (fun hA => Book.defn_adt_clash hk hA)
     | _ =>
-      exact ⟨_, _, Red.app_f rf, by rw [← Term.apps_snoc]; constructor <;> assumption, .app hf' hx0⟩
+      exact ⟨_, _, Red.app_f rf, by rw [← Term.apps_snoc]; constructor! <;> assumption, .app hf' hx0⟩
   | appLam hc hb ih =>
     obtain ⟨v, π', r, hv, h'⟩ := ih hq hd hb
     exact ⟨v, π', .step .beta r, hv, h'⟩
@@ -10494,10 +10494,10 @@ theorem Check.data_deep_aux (hok : Book.Ok β) (hP : DataPol β Φ)
           cases qf with
           | None => rw [hx.none_era _root_.rfl]; exact ⟨fun _ => .qnt, fun _ => _root_.rfl⟩
           | Lone =>
-            simp only [if_true] at hKF
+            simp only [ite_true] at hKF
             exact ih (by omega) hx (hKF.cnv (hP.kind _ hKle)) hdu
           | Many =>
-            simp only [reduceCtorEq, if_false] at hKF
+            simp only [reduceCtorEq, ite_false] at hKF
             exact ih (by omega) hx hKF hdu
       refine ⟨fun β' => ?_, fun β' => ?_⟩
       · exact CG.apps (.ctr) (CGs.of_forall fun u hu => (hall u hu).1 β')
@@ -11400,7 +11400,7 @@ theorem CtrOk.dead (hβ : Book.Closed β) : ∀ {T : Term} {Γ : Ctx} {i : Nat},
     obtain ⟨⟨π, hA⟩, hB⟩ := h
     refine ⟨⟨π, ?_⟩, ih hB⟩
     have h' := hA.void.dead_pol hβ
-    by_cases hc : pn ≤ i ∧ q = .Lone <;> simp only [hc, if_false] at h' ⊢ <;> exact h'
+    by_cases hc : pn ≤ i ∧ q = .Lone <;> simp only [hc, ite_false] at h' ⊢ <;> exact h'
   | _ => intros; trivial
 
 theorem Book.OkK.dead (hok : Book.Ok β) : Book.OkK β (Pol.dead β) := by
@@ -12017,7 +12017,7 @@ theorem Pol.dead_app2 (hβ : Book.Closed β) (hP : Conv β P P') (hx : Conv β x
 -- the eta body instantiated: the argument lands where the bound variable was
 theorem Term.subst_eta (hocc : Term.occ 0 G = 0) (a : Term) :
     Term.subst 0 a (.App G (.Var 0)) = .App (Term.subst 0 .Qnt G) a := by
-  simp only [Term.subst, if_true]
+  simp only [Term.subst, ite_true]
   rw [Term.occ_zero_subst_irrel G 0 a .Qnt hocc]
 
 -- a derivation pinned at the void equation, no spine, demand None, normalized
@@ -13113,7 +13113,7 @@ theorem Eta.subst (h : Eta β a b) : ∀ d w, Eta β (Term.subst d w a) (Term.su
     rw [Term.subst_subst0]
     have h0 : Term.subst (d + 1) (Term.shift 0 w) (Term.Var 0) = .Var 0 := by
       simp only [Term.subst]
-      rw [if_neg (by omega), if_neg (by omega)]
+      rw [ite_eq_right (by omega), ite_eq_right (by omega)]
     show Eta β (.Lam (.App (Term.subst (d + 1) (Term.shift 0 w) F)
       (Term.subst (d + 1) (Term.shift 0 w) (.Var 0)))) _
     rw [h0]
@@ -13520,7 +13520,7 @@ theorem ParE.shift (hp : ParE β t t') : ∀ d, ParE β (t.shift d) (t'.shift d)
       (Term.shift d (Term.subst 0 .Qnt F'))
     have h0 : Term.shift (d + 1) (Term.Var 0) = .Var 0 := by
       simp only [Term.shift]
-      rw [if_pos (by omega)]
+      rw [ite_eq_left (by omega)]
     have h1 : Term.shift d (Term.subst 0 .Qnt F')
         = Term.subst 0 .Qnt (Term.shift (d + 1) F') := by
       rw [Term.shift_subst_ge F' d 0 .Qnt (Nat.zero_le d)]
@@ -13555,7 +13555,7 @@ theorem ParE.subst (hp : ParE β t t') :
       (Term.subst d w' (Term.subst 0 .Qnt F'))
     have h0 : Term.subst (d + 1) (Term.shift 0 w) (Term.Var 0) = .Var 0 := by
       simp only [Term.subst]
-      rw [if_neg (by omega), if_neg (by omega)]
+      rw [ite_eq_right (by omega), ite_eq_right (by omega)]
     have h1 : Term.subst d w' (Term.subst 0 .Qnt F')
         = Term.subst 0 .Qnt (Term.subst (d + 1) (Term.shift 0 w') F') := by
       rw [Term.subst_subst0 F' w' .Qnt d]
@@ -13878,7 +13878,7 @@ theorem Term.map_subst_rvars : ∀ (n m : Nat) (w : Term), n ≤ m →
   | n + 1, m, w, h => by
     show Term.subst m w (.Var n) :: (Term.rvars n).map (Term.subst m w) = .Var n :: Term.rvars n
     rw [Term.map_subst_rvars n m w (by omega)]
-    simp only [Term.subst]; rw [if_neg (by omega), if_neg (by omega)]
+    simp only [Term.subst]; rw [ite_eq_right (by omega), ite_eq_right (by omega)]
 
 theorem Term.subst_lams : ∀ (n d : Nat) (w t : Term),
     Term.subst d w (Term.lams n t) = Term.lams n (Term.subst (d + n) (Term.shiftN n w) t)
@@ -15897,7 +15897,7 @@ theorem Term.inst_var_lt (d : Nat) : ∀ (ρ : List (Option Term)) (i : Nat), i 
       simp only [Term.inst]
       rw [ih (d + 1) i (by omega)]
       simp only [Term.subst]
-      rw [if_neg (by omega), if_neg (by omega)]
+      rw [ite_eq_right (by omega), ite_eq_right (by omega)]
 
 theorem Term.inst_var (d : Nat) : ∀ (ρ : List (Option Term)) (i : Nat), Env.Closed ρ →
     (∀ v, ρ[i]? = some (some v) → Term.inst d ρ (.Var (d + i)) = v) ∧
@@ -15944,12 +15944,12 @@ theorem Term.inst_var (d : Nat) : ∀ (ρ : List (Option Term)) (i : Nat), Env.C
         · obtain ⟨j, hj, e⟩ := this.2.1 (by rwa [List.getElem?_cons_succ] at h)
           simp only [Term.inst]; rw [e]
           simp only [Term.subst]
-          rw [if_neg (by omega), if_pos (by omega)]
+          rw [ite_eq_right (by omega), ite_eq_left (by omega)]
           exact ⟨j - 1, by omega, rfl⟩
         · obtain ⟨j, hj, e⟩ := this.2.2 (by rwa [List.getElem?_cons_succ] at h)
           simp only [Term.inst]; rw [e]
           simp only [Term.subst]
-          rw [if_neg (by omega), if_pos (by omega)]
+          rw [ite_eq_right (by omega), ite_eq_left (by omega)]
           exact ⟨j - 1, by omega, rfl⟩
 
 -- the environment as a list of closed values (every entry substituted)
@@ -16511,12 +16511,12 @@ theorem Term.subst_var_shift : ∀ (t : Term) (d : Nat),
     · show (if i = d then Term.Var d else if d < i then Term.Var (i - 1) else Term.Var i) =
         Term.Var i
       by_cases h1 : i = d
-      · rw [if_pos h1, h1]
-      · rw [if_neg h1, if_neg (by omega)]
+      · rw [ite_eq_left h1, h1]
+      · rw [ite_eq_right h1, ite_eq_right (by omega)]
     · show (if i + 1 = d then Term.Var d else if d < i + 1 then Term.Var (i + 1 - 1) else Term.Var
         (i + 1))
         = Term.Var i
-      rw [if_neg (by omega), if_pos (by omega), Nat.add_sub_cancel]
+      rw [ite_eq_right (by omega), ite_eq_left (by omega), Nat.add_sub_cancel]
   all_goals simp [Term.shift, Term.subst, *]
 
 theorem Term.applyB_shift_lam (t : Term) : Term.applyB (Term.shift 0 (.Lam t)) (.Var 0) = t := by
@@ -16786,7 +16786,7 @@ theorem MatGoal.telv : ∀ (n : Nat) {B s tel G : Term} {ps : List Term},
         refine ⟨_, _, Le.refl _, ?_⟩
         have h2 := h'.subst 0 x
         rw [Nat.zero_add, Term.subst_shift] at h2
-        simp only [Term.subst, Term.subst_shift, if_pos] at h2
+        simp only [Term.subst, Term.subst_shift, ite_eq_left] at h2
         have := ih h2 (FTele.subst hB 0 x) xs (by simpa using hl) (by simpa [Term.apps] using ht)
         rwa [FTele.allQs_subst n hB] at this
 
@@ -16972,8 +16972,8 @@ theorem Term.shiftNAt_var (n : Nat) : ∀ (d i : Nat),
   | succ n ih =>
     intro d i; simp only [Term.shiftNAt]; rw [ih]
     split
-    · simp only [Term.shift]; rw [if_pos ‹_›]
-    · simp only [Term.shift]; rw [if_neg (by omega)]; rfl
+    · simp only [Term.shift]; rw [ite_eq_left ‹_›]
+    · simp only [Term.shift]; rw [ite_eq_right (by omega)]; rfl
 
 -- lhsExt on a pending field: the outermost pending binder becomes the pattern
 theorem Term.lhsExt_lams_succ (k : Nat) (cols : List Term) (a c fn j : Nat) :
@@ -17033,8 +17033,8 @@ theorem Pat.instL_subst (h : Pat β p) (A B E : List Term) (P : Term)
     simp only [Term.Closed] at hp
     rw [Term.shiftNAt_var]
     rcases Nat.lt_trichotomy i A.length with hi | rfl | hi
-    · rw [if_pos (by omega)]
-      simp only [Term.subst]; rw [if_neg (by omega), if_neg (by omega)]
+    · rw [ite_eq_left (by omega)]
+      simp only [Term.subst]; rw [ite_eq_right (by omega), ite_eq_right (by omega)]
       obtain ⟨v, hv⟩ : ∃ v, A[i]? = some v := ⟨_, List.getElem?_eq_getElem hi⟩
       rw [Term.instL0_var_some _ hc
           (by rw [List.getElem?_append_left (by simp; omega), List.getElem?_append_left hi]; exact
@@ -17042,15 +17042,15 @@ theorem Pat.instL_subst (h : Pat β p) (A B E : List Term) (P : Term)
         Term.instL0_var_some _ hc'
             (by rw [List.getElem?_append_left (by simp; omega), List.getElem?_append_left hi];
                   exact hv)]
-    · rw [if_pos (by omega)]
-      simp only [Term.subst]; rw [if_pos trivial]
+    · rw [ite_eq_left (by omega)]
+      simp only [Term.subst]; rw [ite_eq_left trivial]
       rw [List.append_assoc, Term.instL_shiftN_pend A (B ++ E)
           (by simpa [List.append_assoc] using hc)]
       rw [Term.instL0_var_some _ hc'
           (by rw [List.append_assoc, List.getElem?_append_right (Nat.le_refl _), Nat.sub_self];
                 rfl)]
-    · rw [if_neg (by omega)]
-      simp only [Term.subst]; rw [if_neg (by omega), if_pos (by omega)]
+    · rw [ite_eq_right (by omega)]
+      simp only [Term.subst]; rw [ite_eq_right (by omega), ite_eq_left (by omega)]
       obtain ⟨m, rfl⟩ : ∃ m, i = A.length + 1 + m := ⟨i - A.length - 1, by omega⟩
       obtain ⟨v, hv⟩ : ∃ v, E[m]? = some v := ⟨_, List.getElem?_eq_getElem (by omega)⟩
       rw [Term.instL0_var_some _ hc (by
@@ -17136,7 +17136,7 @@ theorem Check.ctr_fields_qs (hok : Book.Ok β) (hP : DataPol β Φ)
   · obtain ⟨qf, F, πx', hq, hx', πF, hKF⟩ := hfields j x u hx hu
     refine ⟨qf, hq, fun hqf => ?_, fun hqf => ?_⟩
     · subst hqf
-      simp only [reduceCtorEq, if_false] at hKF
+      simp only [reduceCtorEq, ite_false] at hKF
       have hdu : Deep β u := (Deep.args hd (by trivial)).mem u (by
         rw [List.mem_append]; exact .inr (List.mem_of_getElem? hu))
       exact (Check.data_deep_aux hok hP hK _ (Nat.le_refl _) hx' hKF hdu).1
@@ -17185,8 +17185,8 @@ theorem EnvO.budget_le : ∀ (env : List Ent) (π π' : Uses), (∀ i, π i ≠ 
     simp only [EnvO.budget]
     refine Sub.append ?_ (ih _ _ (fun i hi => h (i + 1) hi))
     by_cases h1 : e.sub ∧ π 0 ≠ .None
-    · rw [if_pos h1, if_pos ⟨h1.1, h 0 h1.2⟩]; exact Sub.refl _
-    · rw [if_neg h1]; exact Sub.nil _
+    · rw [ite_eq_left h1, ite_eq_left ⟨h1.1, h 0 h1.2⟩]; exact Sub.refl _
+    · rw [ite_eq_right h1]; exact Sub.nil _
 
 theorem EnvO.Aff.tail (h : EnvO.Aff (e :: env) π) : EnvO.Aff env (Uses.tail π) :=
   fun j e' he hs hne => h (j + 1) e' (by simpa using he) hs hne
@@ -17225,19 +17225,19 @@ theorem EnvO.budget_add : ∀ (env : List Ent) (πa πb : Uses), EnvO.Aff env (U
     have hadd : Uses.add πa πb 0 = Quant.add (πa 0) (πb 0) := rfl
     by_cases hs : e.sub = true
     · by_cases ha : πa 0 = .None <;> by_cases hb : πb 0 = .None
-      · rw [if_neg (fun h => h.2 ha), if_neg (fun h => h.2 hb), if_neg (fun h => h.2
+      · rw [ite_eq_right (fun h => h.2 ha), ite_eq_right (fun h => h.2 hb), ite_eq_right (fun h => h.2
           (by rw [hadd, ha, hb]; rfl))]
         simp only [List.count_nil]; omega
-      · rw [if_neg (fun h => h.2 ha), if_pos ⟨hs, hb⟩, if_pos ⟨hs,
+      · rw [ite_eq_right (fun h => h.2 ha), ite_eq_left ⟨hs, hb⟩, ite_eq_left ⟨hs,
           by rw [hadd]; exact Quant.add_ne_none' hb⟩]
         simp only [List.count_nil]; omega
-      · rw [if_pos ⟨hs, ha⟩, if_neg (fun h => h.2 hb), if_pos ⟨hs,
+      · rw [ite_eq_left ⟨hs, ha⟩, ite_eq_right (fun h => h.2 hb), ite_eq_left ⟨hs,
           by rw [hadd]; exact Quant.add_ne_none ha⟩]
         simp only [List.count_nil]; omega
       · by_cases he : e.chg = []
         · rw [he]; simp only [ite_self, List.count_nil]; omega
         · exact absurd (by rw [hadd]; exact Quant.add_many ha hb) (h 0 e (by simp) hs he)
-    · rw [if_neg (fun h => hs h.1), if_neg (fun h => hs h.1), if_neg (fun h => hs h.1)]
+    · rw [ite_eq_right (fun h => hs h.1), ite_eq_right (fun h => hs h.1), ite_eq_right (fun h => hs h.1)]
       simp only [List.count_nil]; omega
 
 theorem EnvO.budget_one (hq : q ≠ .None) : ∀ (env : List Ent) (j : Nat) (e : Ent),
@@ -17251,16 +17251,16 @@ theorem EnvO.budget_one (hq : q ≠ .None) : ∀ (env : List Ent) (j : Nat) (e :
     | zero =>
       simp at h; subst h
       simp only [EnvO.budget]
-      rw [if_pos ⟨hs, by simp [Uses.one, hq]⟩]
+      rw [ite_eq_left ⟨hs, by simp [Uses.one, hq]⟩]
       exact Sub.append_right _ _
     | succ j =>
       simp only [EnvO.budget]
-      rw [if_neg (fun h => h.2 (by simp [Uses.one]))]
+      rw [ite_eq_right (fun h => h.2 (by simp [Uses.one]))]
       have := ih j e (by simpa using h) hs
       have e1 : Uses.tail (Uses.one (j + 1) q) = Uses.one j q := by
         funext i; simp only [Uses.tail, Uses.one]; by_cases hi : i = j
         · subst hi; simp
-        · rw [if_neg (by omega), if_neg hi]
+        · rw [ite_eq_right (by omega), ite_eq_right hi]
       rw [e1]; simpa using this
 
 -- PricedO k pins env π M: M is a pricing below the unfolded charge, up to
@@ -17300,8 +17300,8 @@ theorem PricedO.under_sub (hs : e.sub = true) (h : PricedO k pins (e :: env) π'
   ⟨Y, R, hp, hY, by
     simp only [EnvO.budget] at hR
     by_cases h0 : π' 0 = .None
-    · rw [if_neg (fun h => h.2 h0)] at hR; rw [if_pos h0]; exact hR
-    · rw [if_pos ⟨hs, h0⟩] at hR; rw [if_neg h0]; exact hR⟩
+    · rw [ite_eq_right (fun h => h.2 h0)] at hR; rw [ite_eq_left h0]; exact hR
+    · rw [ite_eq_left ⟨hs, h0⟩] at hR; rw [ite_eq_right h0]; exact hR⟩
 
 theorem PricedO.cover (h1 : PricedO k pins env π1 M1) (h2 : PricedO k pins env π2 M2)
     (hle1 : ∀ i, π1 i ≠ .None → π i ≠ .None) (hle2 : ∀ i, π2 i ≠ .None → π i ≠ .None) :
@@ -17352,7 +17352,7 @@ theorem Ctx.δ_var_lt : ∀ (Γ : Ctx) (d i : Nat), i < d → Ctx.δ Γ d (.Var 
     obtain ⟨q, T, v⟩ := b
     cases v <;> simp only [Ctx.δ]
     · exact ih (d + 1) i (by omega)
-    · simp only [Term.subst]; rw [if_neg (by omega), if_neg (by omega)]; exact ih d i hi
+    · simp only [Term.subst]; rw [ite_eq_right (by omega), ite_eq_right (by omega)]; exact ih d i hi
 
 theorem Term.apps_cons_ne_var (x x0 : Term) : ∀ (xs : List Term) (i : Nat), Term.apps x (x0 :: xs)
     ≠ .Var i := by
@@ -17590,9 +17590,9 @@ theorem DomS.shift (h : DomS β βe ρ D x e) : DomS β βe ρ (D + 1) (Term.shi
     refine .nov (fun i h1 => ?_) (fun a c xs h1 => ?_)
     · obtain ⟨i', e'⟩ := Term.shift_eq_var h1; exact hnv i' e'
     · obtain ⟨ys, e'⟩ := Term.shift_eq_ctr_apps h1; exact hnc a c ys e'
-  | @var i _ hi => simp only [Term.shift]; rw [if_neg (by omega)]; exact .var (by omega)
+  | @var i _ hi => simp only [Term.shift]; rw [ite_eq_right (by omega)]; exact .var (by omega)
   | @varO i v hi hj hc hd =>
-    simp only [Term.shift]; rw [if_neg (by omega)]
+    simp only [Term.shift]; rw [ite_eq_right (by omega)]
     exact .varO (by omega) (by rw [show i + 1 - (D + 1) = i - D by omega]; exact hj) hc hd
   | qnt => exact .qnt
   | @ctr a A c C era src hk hC hlen hpn hpar _ ih =>
@@ -18030,10 +18030,10 @@ theorem Check.dat_deep (hok : Book.Ok β)
         cases qf with
         | None => rw [hx.none_era _root_.rfl]; exact ⟨fun _ => .qnt, fun _ => _root_.rfl⟩
         | Lone =>
-          simp only [if_true] at hKF
+          simp only [ite_true] at hKF
           exact Check.data_deep_aux hok hP hK _ (Nat.le_refl _) hx (hKF.cnv (hP.kind _ hKle)) hdu
         | Many =>
-          simp only [reduceCtorEq, if_false] at hKF
+          simp only [reduceCtorEq, ite_false] at hKF
           exact Check.data_deep_aux hok hP hK _ (Nat.le_refl _) hx hKF hdu
     refine ⟨fun β' => ?_, fun β' => ?_⟩
     · exact CG.apps (.ctr) (CGs.of_forall fun u hu => (hall u hu).1 β')
@@ -18827,13 +18827,13 @@ theorem ArgsP.ctr_dat (hok : Book.Ok β) (ho : Outer β Γ r ρS ρO) (hρS : �
   cases qf with
   | None => exact absurd rfl hqf
   | Lone =>
-    simp only [if_true] at hKF'
+    simp only [ite_true] at hKF'
     have hK2 : Check β (Pol.dead β) (LHS.void β) [] .None Λ (Term.cl Γ r ρS m F) (.Typ (.Qua
         .Many)) π' .Qnt :=
       hKF'.cnv (by rw [Ctx.δ_rigid Λ hΛ, Ctx.δ_rigid Λ hΛ]; exact Pol.dead_kind hβ _ hKle)
     exact Dat.of_kind hok hK2 hΛ
   | Many =>
-    simp only [reduceCtorEq, if_false] at hKF'
+    simp only [reduceCtorEq, ite_false] at hKF'
     exact Dat.of_kind hok hKF' hΛ
 
 -- a rigid non-variable, non-constructor head is never pure
@@ -19724,7 +19724,7 @@ theorem Leaf.priced2 (hok : Book.Ok β) (hE : Book.Era β 0 β βe)
       simp only [List.map_nil, Term.apps, esUses, Uses.add_zero] at hMb hpb
       rw [EnvO.ρ_cons, Ent.ρ_true rfl, Term.inst_cons_some] at hMb
       obtain ⟨Y, R, hpm, hY, hR⟩ := PricedO.under_sub rfl hpb
-      rw [if_pos hπ0, List.nil_append] at hR
+      rw [ite_eq_left hπ0, List.nil_append] at hR
       refine hfin Mb
           (by rw [Term.inst_closed 0 _ (t := .Qnt) trivial]; exact .letC trivial .qnt hMb)
         ⟨Y, R, hpm, hY, hR.trans (EnvO.budget_le env _ _ (fun i hi => Quant.add_ne_none' hi))⟩
